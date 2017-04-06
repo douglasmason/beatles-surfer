@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Enron Email Surfer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Douglas Mason">
+
+    <!-- Le styles -->
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+    </style>
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le fav and touch icons -->
+    <link rel="shortcut icon" href="/static/img/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/static/ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/ico/apple-touch-icon-114-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" href="/static/ico/apple-touch-icon-57-precomposed.png">
+  </head>
+<body>
+
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">&#160;&#160; <img src="/static/img/envelope.png" width="28" height="25"/>&#160;&#160;<b>Enron Email Surfer</b>
+          </a>&#160;&#160;
+          <div class="nav">
+            <ul class="nav">
+              <li class="active"><a href="/">Home</a></li>
+              <li><a href="/static/pages/about.html">About</a></li>
+              <li><a href="http://www.douglasjmason.com">Contact</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+<br />
+<div class="container" id="about" style="width:800px;">
+<h2>How Does It Work?</h2>
+<br />
+Disclaimer: The question and answers shown here relate to the <a title="Beatles Surfer" href="http://www.douglasjmason.com/wordpress/?page_id=139" >Beatles Surfer</a>, but can be generalized to other applications of the Document Surfer I developed at <a href="http://insightdatascience.com/">Insight</a>, like the <a title="Email Surfer" href="http://www.douglasjmason.com/wordpress/?page_id=185" >Enron Email Surfer</a>.</p>
+<br />
+<h3>About the Author</h3>
+The Beatles Surfer was created by <a href="http://www.douglasjmason.com">Douglas J. Mason</a>, a PhD candidate in physics at Harvard University, as part of the <a href="http://www.insightdatascience.com">Insight Data Science Fellowship</a>. You're invited to learn more about my other projects, such as the Beatles Genome Project, at <a href="http://www.douglasjmason.com">my website</a>.
+
+<h3>The Big Idea</h3>
+<p>The contents to every email in the publicly available <a href="http://www.cs.cmu.edu/~enron/">Enron Email dataset</a> are parsed into individual words to construct a dictionary which contains all the words in the dataset. Formatting and capitalization is removed, as well as common words like &#8220;you&#8221; and &#8220;that&#8221;. Words like &#8220;cat&#8221; and &#8220;cats&#8221; really refer to the same thing, and so only the root word is recorded. However, finding a document that contains a word root isn&#8217;t enough. For instance, the word &#8220;love&#8221; appears in almost half of all , whereas the word &#8220;universe&#8221; appears in only two. To account for this discrepancy, I apply <a href="http://en.wikipedia.org/wiki/Tf*idf">tf*idf</a> measures, which weights words based on how often they appear in the dataset.</p>
+<p>Once the Enron Email Surfer has decomposed a song into its words and weighted them properly, it applies a technique called  <a href="http://en.wikipedia.org/wiki/Latent_semantic_indexing">Latent Semantic Indexing</a> (LSI) to extract associations for each word based on their mutual appearance in songs. When you submit a query, the Enron Email Surfer applies the same transformation to your query and matches your query to every email, filtering results based on whether they contain any words in your query. 
+<p>LSI makes it possible to group words together with semantic relations infered from the dataset. As a result, the words &#8220;evil&#8221; and  &#8220;God&#8221; are strongly associated since they are both rare and appear in the same email. A similarity query for that email predictably returns other emails with religious themes (test it for yourself by searching for evil and double-clicking the high-ranking result). Semantic ranking is a fantastic way to identify songs with related meanings, as opposed to arbitrarily searching for overlapping words. We reflect the semanting ranking of each song by the height of its rectangle on the timeline. Individual words that rank high in similarity are highlighted in the text.</p>
+<br />
+<h3>Under the Hood</h3>
+<p>The <a href="http://www.cs.cmu.edu/~enron/">Enron Email dataset</a> provides the full contents of emails from over fifty employees at Enron. For this visualization, we have selected just the emails written to and from CEO Kenneth Lay. For the Beatles visualization, lyrics were scraped from from the <a href="http://web.archive.org/web/20080111231238/http://www.beatleslyricsarchive.com/songs.php" >Beatles Lyrics Archive</a> using BeautifulSoup and Python, and the dates for singles and albums were pulled from <a href="http://www.guardian.co.uk/news/datablog/2009/sep/09/beatles-albums-singles-music-rock-band">a dataset presented by The Guardian</a>.</p>
+<p>Each song is processed, tokenized, and stemmed using the <a href="http://nltk.org/" onclick="javascript:_gaq.push(['_trackEvent','outbound-article','http://nltk.org']);">Natural Language Toolkit</a>, and latent semantic indexing (LSI) was accomplished using <a href="http://radimrehurek.com/gensim/">Gensim</a>. Although not used in the current presentation due to challenges with flexibility, the project was initially demonstrated with LSI conducted by hand-coded tf*idf measures using MapReduce on <a href="http://aws.amazon.com/elasticmapreduce/"">Amazon Elastic MapReduce</a>. The resulting tf*idf vectors for each document were then read into <a href="http://mahout.apache.org/">Mahout</a> which performed the <a href="http://en.wikipedia.org/wiki/Singular_value_decomposition">singular value decomposition</a>, the result of which was loaded into <a href="http://www.scipy.org/" >SciPy</a> for cosine similarity calculations.</p>
+<p>The front end is accomplished by tying <a href="http://d3js.org/">D3.js</a> into the <a href="http://webpy.org/">web.py</a> framework.</p>
+<p>Data-cleaning is a major element that allows the Beatles and Email Surfers to do their job well. For instance, it&#8217;s important to match emails by sender/receiver when they aren&#8217;t the same as the owner, but with long To, CC, and BCC fields, this approach tends to emphasize less-important mass-mailers. As a result, we have filtered the To, CC, and BCC fields so that documents are only matched if these lists are short enough to constitute a personal message. Other boilerplate has been removed as well, like the ubiquitous email signature &#8220;Sent from my iPhone&#8221; (this is obviously more-relevant for contemporary email databases). Identifying quoted email text and the common headers that clients use has also been implemented. Data-cleaning is a never-ending process, however, and I&#8217;m always working on improving it!</p><br /><br /></div>
+</body>
+</html>

@@ -1,0 +1,900 @@
+$def with (form_str)
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Beatles Surfer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="Douglas Mason">
+
+    <!-- Le styles -->
+    <link href="/static/css/style.css" rel="stylesheet">
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+    </style>
+    <link href="/static/css/bootstrap-responsive.css" rel="stylesheet">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le fav and touch icons -->
+    <link rel="shortcut icon" href="/static/img/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/static/ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/static/ico/apple-touch-icon-114-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/static/ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" href="/static/ico/apple-touch-icon-57-precomposed.png">
+<script type="text/javascript" src="/static/d3/d3.v2.js "></script>
+<style>
+.chart {
+	shape-rendering: crispEdges;
+}
+
+.mini text {
+	font: 9px sans-serif;	
+}
+
+.main text {
+	font: 12px sans-serif;	
+}
+
+.month text {
+	text-anchor: start;
+}
+
+.todayLine {
+	stroke: blue;
+	stroke-width: 1.5;
+}
+
+.axis line, .axis path {
+	stroke: black;
+}
+
+.miniItem {
+	stroke-width: 6;	
+}
+
+.future {
+	stroke: gray;
+	fill: #ddd;
+}
+
+.main rect {
+	stroke: green;
+	fill: lightgreen;
+}
+
+
+.main test {
+	stroke: green;
+	fill: green;
+}
+
+.mini rect {
+	stroke: none;
+	fill: green;
+}
+
+.brush .extent {
+  stroke: #fff;
+  fill: #000;
+  fill-opacity: .1;
+  shape-rendering: crispEdges;
+}
+/*
+div.emails {
+	position:relative;
+	color: white;
+	font-size: 16px;
+	padding: 20px 20px 20px 20px;
+	-moz-border-radius: 5px 5px;
+	border-radius: 10px 10px;
+	visibility: hidden;
+	font-family: Helvetica;
+}*/
+
+#a:link {color:#CCCCCC;}      /* unvisited link */
+#a:visited {color:#888888;}  /* visited link */
+#a:hover {color:#FFFFFF;}  /* mouse over link */
+#a:active {color:#FFFFFF;}  /* selected link */
+
+div.query {
+	left: 100px;
+}
+
+div.searchbox {
+	font-family: Helvetica; /*Georgia, "Bitstream Charter", serif;*/
+	font-size: 16px;
+}
+
+.clear { clear:both; }
+
+@media only screen and (max-width: 1260px) {
+#email_wrapper {
+width:710px;
+}
+} 
+@media only screen and (min-width: 1260px) {
+#viz_span {
+float:left;
+padding-right:0px;
+}
+#email_span {
+max-width:720px;
+padding-left:0px;
+overflow:hidden;
+visibility:visible;
+}
+}
+
+@media only screen and (min-width: 1455px) {
+#viz_span {
+float:left;
+padding-right:0px;
+}
+#email_span {
+width:630px;
+padding-left:0px;
+visibility:visible;
+float:left;
+}
+#container {
+width:1450px;
+}
+}
+ 
+
+</style></head>
+  <body>
+
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">&#160;&#160; <img src="/static/img/eighth-note-small.png" width="28" height="25"/>&#160;&#160;<b>Beatles Surfer</b>
+          </a>&#160;&#160;
+          <div class="nav">
+            <ul class="nav">
+              <li class="active"><a href="/">Home</a></li>
+              <li><a href="/static/pages/about.html">About</a></li>
+              <li><a href="http://www.douglasjmason.com">Contact</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+<!--
+    <div class="container">
+
+      <h1>Enron Email Surfer</h1>
+      <p>Use this document as a way to quick start any new project.<br> All you get is this message and a barebones HTML document.</p>
+
+    </div>  /container -->
+<div align="center">
+<div align="center" id="container">
+    <div id="viz_span" style="padding:15px;">
+      <div style="width:750px;" align="center" class="searchbox">
+        <form class="well form-search" name="main" method="post"><!-- $:form_str-->
+        Search Beatles lyrics for:&#160;&#160;&#160;<!--<input class="input-medium search-query" style="width:480px;" type="text" id="Search your email for:" name="Search your email for:"/> -->$:form_str&#160;&#160;<button class="btn btn-primary" id="Visualize" name="Visualize">Visualize</button></form>
+      </div>
+      <script type="text/javascript" src="/static/test_data_header.js"></script>
+      <script type="text/javascript" src="/static/test_data.js"></script>
+      <div class="container" style="width:750px;" id="viz"></div>
+      <br />
+      <br />
+    </div>
+    <div id="email_span" style="padding:15px;">
+      <div class="well" style="visibility:hidden;" align="center" id="email_wrapper">
+        <div id="keywords" style="max-width:600px;visibility:visible;" align="left"></div>
+        <hr>
+        <div style="max-width:600px;visibility:visible;" id="emails" align="left"></div>
+      </div>
+    </div>
+</div>
+</div>
+<script type="text/javascript">
+
+function wordwrap(text, maxlength)
+{
+  var text = text.replace(/\n/g," ");
+  var len = text.length;
+  var pos = -1;
+  var replace = true;
+  for (var i=maxlength; i<len; i += maxlength)
+  {
+    var separator = "\n"
+    for (var pos = i; text.charAt(pos) != " "; pos--)
+    {
+      if (pos == i-maxlength)
+      {
+        pos = i;
+        separator += text.charAt(pos);
+        len++;
+        break;
+      }
+    }
+    text = text.substring(0, pos) + separator + text.substring(pos+1, len-1);
+    i = pos;
+    replace = true;
+  }
+  return text.split("\n");
+}
+
+
+var dark_outgoing = "#226655";//#0057CC";
+var lite_outgoing = "#339977"; //"#0057CC"; //"lightgreen";
+var dark_incoming = "#005588"; //"darkblue";
+var lite_incoming = "#0077BB";//"blue"; //"lightblue";
+
+//var filter_results = 3; //0 for none, 1 for incoming 2 for outgoing, 3 for both
+var filter_in = 0;
+var filter_out = 0;
+
+var popup_width = 450;
+var popup_radius = 10;
+var popup_char_width = 50;
+var popup_vertical_shift = 48;
+var popup_fontsize = 16;
+var popup_height = 6*(popup_fontsize+3)+15;
+var opt_scale_popup = 0;
+var visible_rect = -1;
+  
+var margin = {top: 5, right: 15, bottom: 15, left: 15}
+  , width = 750 - margin.left - margin.right
+  , height = 450 - margin.top - margin.bottom
+  , textHeight = 0
+  , miniHeight = 70
+  , mainHeight = height - textHeight - miniHeight - 50
+  , now = new Date()
+  , mainBarWidth = 8
+  , miniBarWidth = 2;
+
+var legend_width = 120
+if ( header.opt_lyrics == 0 ) {
+var date_pretty = d3.time.format("%b %d %Y - %I:%M %p"); }
+else {
+var date_pretty = d3.time.format("%b %d %Y"); }
+   
+var similarity_list = data.map(function(d) { return d.similarity; });
+var max_similarity = d3.max(data.map(function(d) { return d.similarity; } ));
+var max_similarity = 1.0;
+//var min_date = d3.min(data.map(function(d) { return d3.time.day.offset(d3.time.format.iso.parse(d.plotdate),-1);}));
+//var max_date = d3.max(data.map(function(d) { return d3.time.day.offset(d3.time.format.iso.parse(d.plotdate),1);}));
+var min_date = d3.time.format.iso.parse(header.min_date);
+var max_date = d3.time.format.iso.parse(header.max_date);
+
+
+var x1 = d3.time.scale().range([0, width]);
+x1.domain([min_date,max_date]);
+var x2 = d3.time.scale().range([0, width]);
+x2.domain([min_date,max_date]);
+ 
+var y1 = d3.scale.linear().domain([0,max_similarity]).range([0, mainHeight-80]);
+var y2 = d3.scale.linear().domain([0,max_similarity]).range([0, miniHeight]);
+
+var lastClicked = 0;
+var dblclicktime = 450;
+
+var chart = d3.select("#viz")
+	.append('svg:svg')
+	.attr('width', width + margin.right + margin.left)
+	.attr('height', height + margin.top + margin.bottom)
+	.attr('class', 'chart');
+
+chart.append('defs').append('clipPath')
+	.attr('id', 'clip')
+	.append('rect')
+		.attr('width', width)
+		.attr('height', mainHeight);
+
+var main = chart.append('g')
+	.attr('transform', 'translate(' + margin.left + ',' + (textHeight + margin.top) + ')')
+	.attr('width', width)
+	.attr('height', mainHeight)
+	.attr('class', 'main');
+
+var mini = chart.append('g')
+	.attr('transform', 'translate(' + margin.left + ',' + (textHeight + mainHeight + miniHeight-25) + ')')
+	.attr('width', width)
+	.attr('height', miniHeight)
+	.attr('class', 'mini');
+
+
+var tooltip_keywords = d3.select("#keywords");
+var tooltip = d3.select("#emails");
+	//.style("position", "absolute")
+	
+	
+// draw the x2 axis
+var x2DateAxis = d3.svg.axis()
+	.scale(x2)
+	.orient('bottom')
+	.tickSize(6, 0, 0);
+//	.ticks(d3.time.mondays, (x2.domain()[1] - x2.domain()[0]) > 15552e6 ? 2 : 1)
+//	.tickFormat(d3.time.format('%d %b %y'))
+
+var x1DateAxis = d3.svg.axis()
+	.scale(x1)
+	.orient('bottom')
+	.tickSize(6, 0, 0);
+//	.ticks(d3.time.days, 1)
+//	.tickFormat(d3.time.format('%a %d'))
+
+main.append('g')
+	.attr('transform', 'translate(0,' + mainHeight + ')')
+	.attr('class', 'main axis date')
+	.call(x1DateAxis);
+
+mini.append('g')
+	.attr('transform', 'translate(0,' + miniHeight + ')')
+	.attr('class', 'axis date')
+	.call(x2DateAxis);
+
+// draw a line representing today's date
+main.append('line')
+	.attr('y1', 0)
+	.attr('y2', mainHeight)
+	.attr('class', 'main todayLine')
+	.attr('clip-path', 'url(#clip)');
+	
+mini.append('line')
+	.attr('x1', x2(now) + 0.5)
+	.attr('y1', 0)
+	.attr('x2', x2(now) + 0.5)
+	.attr('y2', miniHeight)
+	.attr('class', 'todayLine');
+
+if ( header.opt_lyrics == 0 ) {
+
+var incoming = d3.select("svg")
+  .insert("rect","g")
+  .attr("class","legend")
+  .attr("x",width+margin.left-legend_width)
+  .attr("y",50)
+  .attr("height",20)
+  .attr("width",20)
+  .attr("fill-opacity",0.5)
+  .attr("fill",lite_incoming)
+  .attr("stroke","None")
+
+  
+  
+var incoming_text = d3.select("svg")
+  .insert("text","g")
+  .attr("class","legend")
+  .attr("x",width+margin.left-legend_width+20+5)
+  .attr("y",50+20-1)
+  .text("incoming")
+  .attr("fill-opacity",0.5)
+  .attr("font-size",24)
+  .attr("fill","#999")
+  .attr("font-family","Helvetica");
+  
+  
+  
+var outgoing = d3.select("svg")
+  .insert("rect","g")
+  .attr("class","legend")
+  .attr("x",width+margin.left-legend_width)
+  .attr("y",20+5+50)
+  .attr("height",20)
+  .attr("width",20)
+  .attr("fill-opacity",0.5)
+  .attr("fill",lite_outgoing)
+  .attr("stroke","None")
+  
+var outgoing_text = d3.select("svg")
+  .insert("text","g")
+  .attr("class","legend")
+  .attr("x",width+margin.left-legend_width+20+5)
+  .attr("y",20+5+50+20-1)
+  .text("outgoing")
+  .attr("fill-opacity",0.5)
+  .attr("font-size",24)
+  .attr("fill","#999")
+  .attr("font-family","Helvetica");
+}  
+
+// draw the items
+var itemRects = main.append('g')
+	.attr('clip-path', 'url(#clip)');
+	
+	
+var miniItemRects = mini.append('g')
+	.attr('clip-path', 'url(#clip)');
+	/*
+// invisible hit area to move around the selection window
+mini.append('rect')
+	.attr('pointer-events', 'painted')
+	.attr('width', width)
+	.attr('height', miniHeight)
+	.attr('visibility', 'hidden')
+	.on('mouseup', brushReset);
+*/
+
+// draw the selection area
+var brush = d3.svg.brush()
+	.x(x2)
+	//.extent([min_date,max_date])
+	.on("brush", display);
+
+mini.append('g')
+	.attr('class', 'x brush')
+	.call(brush)
+	.selectAll('rect')
+		.attr('y', 1)
+		.attr('height', miniHeight);
+		
+		
+	//Add Title to page 
+	if ( header.query.search("No matches for ")==0 ) { tcolor = "#c66"; } else if ( header.query.search("Enron")==0) { tcolor = lite_incoming;}  else if ( header.query.search("All Your Emails")==0) { tcolor = lite_incoming;} else if ( header.query.search("The Beatles")==0 ) { tcolor = lite_incoming;} else { tcolor = "#999";}; 
+	bg_display = main.insert("text","g")
+     .attr("class", "title")
+     .text(header.query)
+     .attr("x", 1)
+     //.attr("dx", 5)
+     .attr("y", mainHeight*2.0/3.0)
+     //.attr("dy", "-0.1em")
+     .attr("text-anchor", "start" )
+     .style("fill", tcolor)
+     .style("fill-opacity","50%")
+     .style("font-size", (140*10.0/Math.max(7,header.query.length))+"px");
+  
+//Establish main timeline  
+if ( header.brushmin.length > 2 ){
+  minExtent = d3.time.format.iso.parse(header.brushmin);
+  maxExtent = d3.time.format.iso.parse(header.brushmax);
+  brush.extent([minExtent,maxExtent]);
+  x1.domain([minExtent,maxExtent]);
+  opt_move_brush = 1;
+} else { // brush.extent([min_date, max_date]);
+x1.domain([min_date, max_date]);}
+  
+//Show bubble and doc for doc queries
+var k;
+for (k = data.length - 1; k >= 0; --k) { 
+  if ( data[k].id==header.id ) {
+    show_tooltip(data[k])
+    bubble(data[k],0,true)
+  }
+}  
+
+function show_tooltip(d) {
+  if ( header.query.search("Enron") == 0 || header.query.search("All Your Emails") == 0 || header.query.search("The Beatles") == 0 ) {
+    similar_text = "";} else {
+    similar_text = "<b>Keywords:</b> "+
+     d.similar_words+ "<br /><a href='?docid="+(d.id)+"'>(search for similar emails)</a>";}
+
+  if ( header.opt_lyrics == 0 ){
+  tooltip_keywords.html(similar_text);
+  d3.select("#email_wrapper").style("visibility","visible");
+  tooltip.style("visibility","visible")
+    .html("<em>"+ date_pretty(d3.time.format.iso.parse(d.date)) + "</em><br />" + 
+     "From: "+d.sender + "<br />" +
+     "To: "+ d.recipient + "<br />" +
+     "<b><big>"+ d.subject + "</big></b> <br />" +
+     d.document.replace(/\n\r?/g, '<br />'))
+     ;//.style("background-color", d.outgoing == 1 ? dark_outgoing : dark_incoming );
+} else { 
+  tooltip_keywords.html(similar_text);
+  d3.select("#email_wrapper").style("visibility","visible");
+  tooltip.style("visibility","visible")
+    .html("<em>"+ date_pretty(d3.time.format.iso.parse(d.date)) + "</em><br />" + 
+     "Album: "+d.sender + "<br />" +
+     "<b><big>"+ d.subject + "</big></b> <br />" +
+     d.document.replace(/\n\r?/g, '<br />'))
+     //.style("background-color", d.outgoing == 1 ? dark_outgoing : dark_incoming )
+     .style("width","450px")
+     .style("left","205px"); }
+}
+function bubble(d,i,opt_trans) {
+  if ( d.subject=="Null" ) { return; }
+
+          /* main.append("circle","g")
+             .attr("class", "popup")
+             .attr("cx", x1(d3.time.format.iso.parse(d.plotdate)) + mainBarWidth/2.0)
+             .attr("cy", mainHeight-y1(d.similarity) - 5)
+             .attr("r", 3)
+             .style("fill", d.outgoing == 1 ? "black" : "darkgreen" )
+             .style("fill-opacity",1.0)
+             .style("stroke","None");*/
+             
+           main.append("path","g")
+             .attr("class", "popupbubble")
+             .attr("shape-rendering","geometricPrecision")
+             .attr("d", function (tmp) {
+                           x = x1(d3.time.format.iso.parse(d.plotdate)); 
+                           xleft = x1(d3.time.format.iso.parse(d.plotdate)) - mainBarWidth/2.0;
+                           xrite = x1(d3.time.format.iso.parse(d.plotdate)) + mainBarWidth/2.0;
+                           y = Math.max(mainHeight-y1(d.similarity)+1,mainHeight-y1(max_similarity)+popup_vertical_shift+10);
+                           toppy = mainHeight-y1(max_similarity)+popup_vertical_shift-3;
+                           tmp_width = popup_width;
+                           tmp_height = Math.max(30,toppy-y);
+                           bend = 100.0;/*
+                           return 'M '+(Math.max(Math.min(xleft,width),0))+','+(y)+' Q '+(Math.max(Math.min(xleft,width),0))+','+(toppy+tmp_height/bend)+' '+(Math.max(Math.min(x-tmp_width/2.0,width-tmp_width),popup_radius-3))+','+(toppy)+' Q '+(Math.min(Math.max(x,width),0))+','+(toppy)+' '+(Math.max(Math.min(x+tmp_width/2.0,width-popup_radius-3),tmp_width))+','+(toppy)+' Q '+(Math.max(Math.min(xrite,width),0))+','+(toppy+tmp_height/bend)+' '+(xrite)+','+(y)+" Z"
+             })*/
+             
+                           return 'M '+(Math.max(Math.min(xleft,width),0))+','+(y)+ //Start at upper-left edge of rect
+' Q '+(Math.max(Math.min(xleft,width),0))+','+(toppy+tmp_height/bend)+' '+(Math.max(Math.min(x-popup_width/2.0+popup_radius,width-popup_width+popup_radius),popup_radius))+','+(toppy)+ //Curve up to left edge of round. rect.
+' Q '+(Math.max(Math.min(x-popup_width/2.0,width-popup_width),0))+','+(toppy)+' '+(Math.max(Math.min(x-popup_width/2.0,width-popup_width),0))+','+(toppy-popup_radius)+ //Curve around lower-left corner of round. rect.
+' Q '+(Math.max(Math.min(x-popup_width/2.0,width-popup_width),0))+','+(toppy-popup_radius)+' '+(Math.max(Math.min(x-popup_width/2.0,width-popup_width),0))+','+(toppy-popup_height+popup_radius)+ //Straight left vertical line
+' Q  '+(Math.max(Math.min(x-popup_width/2.0,width-popup_width),0))+','+(toppy-popup_height)+' '+(Math.max(Math.min(x-popup_width/2.0+popup_radius,width-popup_width+popup_radius),popup_radius))+','+(toppy-popup_height)+ //Curve around upper-left corner of round. rect.
+' Q  '+(Math.max(Math.min(x-popup_width/2.0+popup_radius,width-popup_width+popup_radius),popup_radius))+','+(toppy-popup_height)+' '+(Math.max(Math.min(x+popup_width/2.0-popup_radius,width-popup_radius),popup_width-popup_radius))+','+(toppy-popup_height)+ //Stright top edge
+' Q  '+(Math.max(Math.min(x+popup_width/2.0,width),popup_width))+','+(toppy-popup_height)+' '+(Math.max(Math.min(x+popup_width/2.0,width),popup_width))+','+(toppy-popup_height+popup_radius)+ //Curve around upper-right corner
+' Q  '+(Math.max(Math.min(x+popup_width/2.0,width),popup_width))+','+(toppy-popup_height+popup_radius)+' '+(Math.max(Math.min(x+popup_width/2.0,width),popup_width))+','+(toppy-popup_radius)+ //Straight right vertical line
+' Q  '+(Math.max(Math.min(x+popup_width/2.0,width),popup_width))+','+(toppy)+' '+(Math.max(Math.min(x+popup_width/2.0-popup_radius,width-popup_radius),popup_width-popup_radius))+','+(toppy)+ //Curve around lower-right corner
+' Q '+(Math.max(Math.min(xrite,width),0))+','+(toppy+tmp_height/bend)+' '+(xrite)+','+(y)+" Z" //Cruve to right edge of item rect.
+})
+             .style("fill", d.outgoing == 1 ? dark_outgoing : dark_incoming )
+             .style("stroke","None") 
+       .on("mouseover", function(tmp) {
+         bubble(d,i,false);
+         if ( d.id==visible_rect || d.id==header.id ) {;}
+         else{
+         main.select("rect#outer-" + d.id)
+           .style("visibility", "visible")
+           .style("fill-opacity",1.0)
+           .style("fill", function(d) { return ( d.outgoing == 1 ? dark_outgoing : dark_incoming ); })
+           .style("stroke", function(d) { return ( d.outgoing == 1 ? dark_outgoing : dark_incoming ); });
+         }
+       })   
+       .on("mouseout", function(tmp){
+         if ( d.id==visible_rect || d.id==header.id ){;} 
+         else{
+         main.select("rect#outer-" + d.id)
+           .style("fill", function(d) { return ( d.outgoing == 1 ? lite_outgoing : lite_incoming ); })
+           .style("fill-opacity",0.5)
+           .style("stroke", function(d) { return ( d.outgoing == 1 ? dark_outgoing : dark_incoming ); });
+        }
+         main.selectAll("text.popup").remove();
+         main.selectAll(".popupbubble").remove();
+         main.selectAll(".hoverrect").remove();
+       })
+       .on("mousedown", function(tmp){ 
+       var timeNow = (new Date()).getTime();
+       if (timeNow > (lastClicked + dblclicktime)) {
+         if ( d.id!=visible_rect ){
+         main.select("rect#outer-" + visible_rect)
+           .style("fill", function(d) { return ( d.outgoing == 1 ? lite_outgoing : lite_incoming ); })
+           .style("fill-opacity",0.5)
+           .style("stroke", function(d) { return ( d.outgoing == 1 ? dark_outgoing : dark_incoming ); });
+        }
+        // main.selectAll("circle.popup").remove();
+        show_tooltip(d);
+        main.selectAll(".popupbubble")
+          .style("fill-opacity",1.0)
+       main.select("rect#outer-" + d.id)
+           .style("fill-opacity",1.0);
+        visible_rect = d.id;
+        }
+        else {
+       if ( brush.empty() ) { return window.location.replace('?docid='+(d.id)); }
+       else {
+return window.location.replace( '?docid=' + (d.id) + '&brushmin=' + d3.time.format.iso(brush.extent()[0]) + '&brushmax=' + d3.time.format.iso(brush.extent()[1])
+);
+       }
+        }
+        lastClicked = timeNow;
+        })
+       .on("mouseup", function(d, i){ 
+        });
+           subject_txt = d.subject.replace(/\<.+?\>/g, '')
+           main.append("text","g")
+             .attr("class", "popup")
+             .text(( subject_txt > popup_char_width ? subject_txt.slice(0,popup_char_width*0.85)+'...' : subject_txt ) )
+             .attr("x", Math.max( Math.min(x1(d3.time.format.iso.parse(d.plotdate)) - popup_width/2.0 + 5,width-popup_width+5), 3))
+             .attr("dx", 5)
+             .attr("y",opt_scale_popup ? mainHeight-y1(d.similarity)+(popup_fontsize+3)*2 : mainHeight-y1(max_similarity)-popup_height+popup_vertical_shift+(popup_fontsize+3)*3)
+             .attr("dy", "-0.1em")
+             //.attr("text-anchor", ( x1(d3.time.format.iso.parse(d.plotdate)) < width-popup_width ) ? "start" : "end" )
+             .attr("text-anchor","start")
+             .style("fill", "#ffffff")
+             .style("font-size", (popup_fontsize)+"px")
+             .style("font-weight", "bold"); 
+           main.append("text","g")
+             .attr("class", "popup")
+             .text(date_pretty(d3.time.format.iso.parse(d.date)))
+             .style("font-style","italic")
+             .attr("x", Math.max( Math.min(x1(d3.time.format.iso.parse(d.plotdate)) - popup_width/2.0 + 5,width-popup_width+5), 3))
+             .attr("dx", 5)
+             .attr("y", opt_scale_popup ? mainHeight-y1(d.similarity)-0 : mainHeight-y1(max_similarity)-popup_height+popup_vertical_shift+popup_fontsize+3)
+             .attr("dy", "-0.1em")
+             //.attr("text-anchor", ( x1(d3.time.format.iso.parse(d.plotdate)) < width-popup_width ) ? "start" : "end" )
+             .attr("text-anchor","start")
+             .style("fill", "#ffffff")
+             .style("font-size", (popup_fontsize)+"px");
+           if ( d.outgoing == 1 ) {
+           main.append("text","g")
+             .attr("class", "popup")
+             .text("To: "+( d.recipient.replace(/<[@\.\w_-]+>/g,'').replace(/[\"\']/g,'').length > popup_char_width ? d.recipient.replace(/<[@\.\w_-]+>/g,'').replace(/[\"\']/g,'').slice(0,popup_char_width)+'...' : d.recipient.replace(/<[@\.\w_-]+>/g,'').replace(/[\"\']/g,'') ) )
+             .attr("x", Math.max( Math.min(x1(d3.time.format.iso.parse(d.plotdate)) - popup_width/2.0 + 5,width-popup_width+5), 3))
+             .attr("dx", 5)
+             .attr("y", opt_scale_popup ? mainHeight-y1(d.similarity)+(popup_fontsize+3) : mainHeight-y1(max_similarity)-popup_height+popup_vertical_shift+(popup_fontsize+3)*2)
+             .attr("dy", "-0.1em")
+             //.attr("text-anchor", ( x1(d3.time.format.iso.parse(d.plotdate)) < width-popup_width ) ? "start" : "end" )
+             .attr("text-anchor","start")
+             .style("fill", "#ffffff")
+             .style("font-size", (popup_fontsize)+"px");
+          } else {
+           main.append("text","g")
+             .attr("class", "popup")
+             .text("From: " + ( d.sender.replace(/<[@\.\w_-]+>/g,'').replace(/[\"\']/g,'').length > popup_char_width ? d.sender.replace(/<[@\.\w_-]+>/g,'').replace(/[\"\']/g,'').slice(0,popup_char_width)+'...' : d.sender.replace(/<[@\.\w_-]+>/g,'').replace(/[\"\']/g,'') ) )
+             .attr("x", Math.max( Math.min(x1(d3.time.format.iso.parse(d.plotdate)) - popup_width/2.0 + 5,width-popup_width+5), 3))
+             .attr("dx", 5)
+             .attr("y", opt_scale_popup ? mainHeight-y1(d.similarity)+(popup_fontsize+3) : mainHeight-y1(max_similarity)-popup_height+popup_vertical_shift+(popup_fontsize+3)*2)
+             .attr("dy", "-0.1em")
+             //.attr("text-anchor", ( x1(d3.time.format.iso.parse(d.plotdate)) < width-popup_width ) ? "start" : "end" )
+             .attr("text-anchor","start")
+             .style("fill", "#ffffff")
+             .style("font-size", (popup_fontsize)+"px");
+          }
+            snippet_array = wordwrap(d.snippet,popup_char_width)
+            main.append("text","g")
+             .attr("class", "popup")
+             .text( snippet_array.length >= 1 ? snippet_array[0] : '' )
+             .attr("x", Math.max( Math.min(x1(d3.time.format.iso.parse(d.plotdate)) - popup_width/2.0 + 5,width-popup_width+5), 3))
+             .attr("dx", 5)
+             .attr("y", opt_scale_popup ? mainHeight-y1(d.similarity)+(popup_fontsize+3)*3 : mainHeight-y1(max_similarity)-popup_height+popup_vertical_shift+(popup_fontsize+3)*4)
+             .attr("dy", "-0.1em")
+             //.attr("text-anchor", ( x1(d3.time.format.iso.parse(d.plotdate)) < width-popup_width ) ? "start" : "end" )
+             .attr("text-anchor","start")
+             .style("fill", "#ffffff")
+             .style("font-size", (popup_fontsize)+"px");
+            main.append("text","g")
+             .attr("class", "popup")\
+             .text( snippet_array.length >= 2 ? snippet_array[1] : '' )
+             .attr("x", Math.max( Math.min(x1(d3.time.format.iso.parse(d.plotdate)) - popup_width/2.0 + 5,width-popup_width+5), 3))
+             .attr("dx", 5)
+             .attr("y", opt_scale_popup ? mainHeight-y1(d.similarity)+(popup_fontsize+3)*4 : mainHeight-y1(max_similarity)-popup_height+popup_vertical_shift+(popup_fontsize+3)*5)
+             .attr("dy", "-0.1em")
+             //.attr("text-anchor", ( x1(d3.time.format.iso.parse(d.plotdate)) < width-popup_width ) ? "start" : "end" )
+             .attr("text-anchor","start")
+             .style("fill", "#ffffff")
+             .style("font-size", (popup_fontsize)+"px");
+            main.append("text","g")
+             .attr("class", "popup")\
+             .text( snippet_array.length == 3 ? snippet_array[2] : ( snippet_array.length > 3 ? snippet_array[2]+'...' : '' ) )
+             .attr("x", Math.max( Math.min(x1(d3.time.format.iso.parse(d.plotdate)) - popup_width/2.0 + 5,width-popup_width+5), 3))
+             .attr("dx", 5)
+             .attr("y", opt_scale_popup ? mainHeight-y1(d.similarity)+(popup_fontsize+3)*5 : mainHeight-y1(max_similarity)-popup_height+popup_vertical_shift+(popup_fontsize+3)*6)
+             .attr("dy", "-0.1em")
+             //.attr("text-anchor", ( x1(d3.time.format.iso.parse(d.plotdate)) < width-popup_width ) ? "start" : "end" )
+             .attr("text-anchor","start")
+             .style("fill", "#ffffff")
+             .style("font-size", (popup_fontsize)+"px");
+             
+          if (opt_trans) {
+          main.selectAll(".popupbubble","g")
+             .style("fill-opacity", 0 )
+             .transition()
+             .delay(0)
+             .duration(500)
+             .style("fill-opacity", (d.id==visible_rect || d.id==header.id ? 1.0 : 0.5) );
+          main.selectAll(".popup","g")
+             .style("fill-opacity", 0 )
+             .transition()
+             .delay(0)
+             .duration(500)
+             .style("fill-opacity", (d.id==visible_rect || d.id==header.id ? 1.0 : 0.5) );
+          } else {
+          main.selectAll(".popupbubble","g")
+             .style("fill-opacity", (d.id==visible_rect || d.id==header.id ? 1.0 : 0.5) );
+          }
+          
+}
+
+
+
+var opt_move_brush = 0;
+//mini.selectAll('rect.background').remove();
+display();
+function display () {
+	
+	var rects, mini_rects, labels
+	  , minExtent = d3.time.minute(brush.extent()[0])
+	  , maxExtent = d3.time.minute(brush.extent()[1])
+	  , visItems = data.filter(function (d) { return d3.time.format.iso.parse(d.plotdate) < maxExtent && d3.time.format.iso.parse(d.plotdate) > minExtent});
+  
+
+  //if ( minExtent<min_date ) { minExtent = min_date;}
+  //if ( maxExtent>max_date ) { maxExtent = max_date;}
+  
+  if ( opt_move_brush==0 && header.brushmin.length > 2 ){
+    minExtent = d3.time.format.iso.parse(header.brushmin);
+    maxExtent = d3.time.format.iso.parse(header.brushmax);
+    brush.extent([minExtent,maxExtent]);
+    x1.domain([minExtent,maxExtent]);
+    opt_move_brush = 1;
+  }
+ if (brush.empty()) {x1.domain([min_date, max_date]);}
+ else {	x1.domain([minExtent, maxExtent]);}
+		
+mini.select('.brush').call(brush.extent([minExtent, maxExtent]));
+	
+	// shift the today line
+	main.select('.main.todayLine')
+		.attr('x1', x1(now) + 0.5)
+		.attr('x2', x1(now) + 0.5);
+
+	// update the axis
+	main.select('.main.axis.date').call(x1DateAxis);
+
+	// upate the item rects
+	mini_rects = miniItemRects.selectAll('rect')
+		.data(data)
+		.attr('x', function(d) { return x2(d3.time.format.iso.parse(d.plotdate))-miniBarWidth/2.0; })
+		.attr('width', function(d) { return miniBarWidth; });
+
+	mini_rects.enter().append('rect')
+    .attr("class", function(d) { return ( d.outgoing == 1 ? "outgoing" : "incoming" ); })
+    .attr("shape-rendering","geometricPrecision")
+		.attr('x', function(d) { return x2(d3.time.format.iso.parse(d.plotdate))-miniBarWidth/2.0; })
+		.attr('width', function(d) { return miniBarWidth; })
+		.attr('height', function(d) { return y2(d.similarity); })
+   .style("fill", function(d) { return ( d.outgoing == 1 ? lite_outgoing : lite_incoming ); })
+		//.attr('class', function(d) { return 'mainItem ' + d.class; })
+		.attr('height', 0)
+		.attr('y', function(d) { return miniHeight; })
+		.transition()
+    .delay(0)
+    .duration(500)
+  //.ease("elastic")
+  	.attr('y', function(d) { return miniHeight-y2(d.similarity); })
+		.attr('height', function(d) { return y2(d.similarity); })
+  ;
+		
+	mini_rects.exit().remove();
+	
+	
+	rects = itemRects.selectAll('rect')
+		.data(data)
+		.attr('x', function(d) { return x1(d3.time.format.iso.parse(d.plotdate)) - mainBarWidth/2.0; })
+		.attr('width', function(d) { return mainBarWidth; });
+
+	rects.enter().append('rect')
+    .attr("class", function(d) { return ( d.outgoing == 1 ? "outgoing" : "incoming" ); })
+    .attr("shape-rendering","geometricPrecision")
+    .attr("id", function(d,i) { return "outer-" + d.id; })
+		.attr('x', function(d) { return x1(d3.time.format.iso.parse(d.plotdate))-mainBarWidth/2.0; })
+		.attr('width', function(d) { return mainBarWidth; })
+    .style("fill", function(d) { return( d.id == header.id ? ( d.outgoing == 1 ? dark_outgoing : dark_incoming ) :  ( d.outgoing == 1 ? lite_outgoing : lite_incoming )); })
+    .style("fill-opacity", function(d) { return (d.id == header.id ? 1.0 : 0.5);})
+    .style("stroke", function(d) { return ( d.outgoing == 1 ? dark_outgoing : dark_incoming ); })
+    .style("stroke-width",0)
+		.attr('y', function(d) { return mainHeight; })
+    .transition()
+    .delay(0)
+    .duration(500)
+//.ease("elastic")
+		.attr('height', function(d) { return y1(d.similarity); })
+		.attr('y', function(d) { return mainHeight-y1(d.similarity); });
+    
+  rects.exit().remove();
+    
+  //invisible mouseover areas for each node
+  
+	invisirects = itemRects.selectAll('invisirects')
+		.data(data)
+		.attr('x', function(d) { return x1(d3.time.format.iso.parse(d.plotdate))-mainBarWidth/2.0; })
+		.attr('width', function(d) { return 10; });
+		
+	invisirects.enter().append("rect")
+     .style("fill-opacity",0.0)
+     .style("stroke","none")
+     .attr("x", function(d,i) {
+       return (i == 0) ? 0 :
+        (x1(d3.time.format.iso.parse(data[i-1].plotdate)) + x1(d3.time.format.iso.parse(data[i].plotdate)) + mainBarWidth/2.0) / 2.0;
+     })
+     .attr("width", function(d,i) {
+       xtmp1 = (i == 0) ? 0 :
+        (x1(d3.time.format.iso.parse(data[i-1].plotdate)) + x1(d3.time.format.iso.parse(data[i].plotdate))) / 2.0;
+       xtmp2 = (i == data.length - 1) ? width :
+        (x1(d3.time.format.iso.parse(data[i].plotdate)) + x1(d3.time.format.iso.parse(data[i+1].plotdate))) / 2.0;
+       return ( xtmp2 - xtmp1 < 0 ) ? 0 : xtmp2 - xtmp1;
+     })
+     .attr("y", popup_height+20)
+     .attr("height", mainHeight-popup_height-20)
+     //.attr("cursor", "hand") 
+       .on("mouseover", function(d, i) {
+         bubble(d,i,false);
+         if ( d.id==visible_rect || d.id==header.id ){;} 
+         else{
+         main.select("rect#outer-" + d.id)
+           .style("visibility", "visible")
+           .style("fill-opacity",1.0)
+           .style("fill", function(d) { return ( d.outgoing == 1 ? dark_outgoing : dark_incoming ); })
+           .style("stroke", function(d) { return ( d.outgoing == 1 ? dark_outgoing : dark_incoming ); });
+         }
+       })
+       .on("mouseout", function(d, i){
+         if ( d.id==visible_rect || d.id==header.id ){;} 
+         else{
+         main.select("rect#outer-" + d.id)
+           .style("fill", function(d) { return ( d.outgoing == 1 ? lite_outgoing : lite_incoming ); })
+           .style("fill-opacity",0.5)
+           .style("stroke", function(d) { return ( d.outgoing == 1 ? dark_outgoing : dark_incoming ); });
+        }
+         main.selectAll("text.popup").remove();
+         main.selectAll(".popupbubble").remove();
+         main.selectAll(".hoverrect").remove();
+       })
+       .on("mousedown", function(d, i){ 
+       var timeNow = (new Date()).getTime();
+       if (timeNow > (lastClicked + dblclicktime)) {
+         if ( d.id!=visible_rect ){
+         main.select("rect#outer-" + visible_rect)
+           .style("fill", function(d) { return ( d.outgoing == 1 ? lite_outgoing : lite_incoming ); })
+           .style("fill-opacity",0.5)
+           .style("stroke", function(d) { return ( d.outgoing == 1 ? dark_outgoing : dark_incoming ); });
+        }
+        // main.selectAll("circle.popup").remove();
+        show_tooltip(d);
+        main.selectAll(".popupbubble")
+          .style("fill-opacity",1.0)
+       main.select("rect#outer-" + d.id)
+           .style("fill-opacity",1.0);
+        visible_rect = d.id;
+        }
+        else {
+       if ( brush.empty() ) { return window.location.replace('?docid='+(d.id)); }
+       else {
+return window.location.replace( '?docid=' + (d.id) + '&brushmin=' + d3.time.format.iso(brush.extent()[0]) + '&brushmax=' + d3.time.format.iso(brush.extent()[1])
+);
+       }
+        }
+        lastClicked = timeNow;
+        })
+       .on("mouseup", function(d, i){ 
+        });
+       /*
+         textwindow.append("test")
+             .attr("class", "textwindow")
+             .text("To: "+d.recipient)
+             .attr("x", 1)
+             .attr("dx", 5)
+             .attr("y", 1)
+             .attr("dy", "-0.1em")
+             .attr("text-anchor", "start" )
+             .style("fill", "#000")
+             .style("font-size", "12px");});
+*/
+invisirects.exit().remove();
+  
+
+
+  
+}
+/*
+function brush() {
+  x.domain(brush.empty() ? x2.domain() : brush.extent());
+  main.select("path").attr("d", area);
+  main.select(".x.axis").call(xAxis);
+}
+*/
+
+
+function brush() {
+	/*var origin = d3.mouse(this)
+	  , point = x2.invert(origin[0])
+	  , halfExtent = (brush.extent()[1].getTime() - brush.extent()[0].getTime()) / 2
+	  , start = new Date(point.getTime() - halfExtent)
+	  , end = new Date(point.getTime() + halfExtent);
+  */
+  x1.domain(brush.empty() ? x2.domain() : brush.extent());
+  //brush.extent([start,end]);
+	display();
+}
+
+
+
+
+</script>
+<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+</body>
+</html>

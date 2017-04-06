@@ -1,0 +1,164 @@
+
+/*
+incoming
+  .on("mouseover", function (tmp) {
+  if ( header.incoming == 1 ) { 
+  return incoming
+  .attr("fill-opacity",0.5)
+  .attr("fill",lite_incoming);
+  } else { 
+  return  incoming
+  .attr("fill-opacity",1.0)
+  .attr("fill",dark_incoming);  
+  }})
+  .on("mouseout", function (tmp) {
+  if ( header.incoming == 0 ) { 
+  return incoming
+  .attr("fill-opacity",0.5)
+  .attr("fill",lite_incoming);
+  } else { 
+  return  incoming
+  .attr("fill-opacity",1.0)
+  .attr("fill",dark_incoming);  
+  }})
+  .on("mousedown", function (tmp) {
+  if ( header.incoming == 1 ) { 
+  return incoming
+  .attr("fill-opacity",0.5)
+  .attr("fill",lite_incoming);
+  } else { 
+  return  incoming
+  .attr("fill-opacity",1.0)
+  .attr("fill",dark_incoming);  
+  }}
+  )
+  .on("mouseup", function (tmp) {
+  if ( header.incoming == 1 ) { 
+  return window.location.replace(window.location.href.replace('&incoming=1','').replace('&incoming=0','')+'&incoming=0');
+  } else
+  return window.location.replace(window.location.href.replace('&incoming=1','').replace('&incoming=0','')+'&incoming=1');
+  })
+  ;
+  
+  
+outgoing.  
+  .on("mouseover", function (tmp) { 
+  if ( header.outgoing == 1 ) { 
+  return outgoing
+  .attr("fill-opacity",0.5)
+  .attr("fill",lite_outgoing);
+  } else { 
+  return  outgoing
+  .attr("fill-opacity",1.0)
+  .attr("fill",dark_outgoing);  
+  }})
+  .on("mouseout", function (tmp) {
+  if ( header.outgoing == 0 ) { 
+  return outgoing
+  .attr("fill-opacity",0.5)
+  .attr("fill",lite_outgoing);
+  } else { 
+  return  outgoing
+  .attr("fill-opacity",1.0)
+  .attr("fill",dark_outgoing);  
+  }})
+  .on("mousedown", function (tmp) {
+  if ( header.outgoing == 1 ) { 
+  return outgoing
+  .attr("fill-opacity",0.5)
+  .attr("fill",lite_outgoing);
+  } else { 
+  return  outgoing
+  .attr("fill-opacity",1.0)
+  .attr("fill",dark_outgoing);  
+  }}
+  )
+  .on("mouseup", function (tmp) {
+  if ( header.outgoing == 1 ) { 
+  return window.location.replace(window.location.href.replace('&outgoing=1','').replace('&outgoing=0','')+'&outgoing=0');
+  } else
+  return window.location.replace(window.location.href.replace('&outgoing=0','')+'&outgoing=1');
+  });
+  
+  
+if (header.incoming==0) {
+  incoming
+  .attr("fill-opacity",0.5)
+  .attr("fill",lite_incoming)
+  .attr("stroke","None") }
+  else {;
+  incoming
+  .attr("fill-opacity",1.0)
+  .attr("fill",dark_incoming)
+  .attr("stroke","None"); }
+  
+  if (header.outgoing==0) {
+  outgoing
+  .attr("fill-opacity",0.5)
+  .attr("fill",lite_outgoing)
+  .attr("stroke","None") }
+  else {
+  outgoing
+  .attr("fill-opacity",1.0)
+  .attr("fill",dark_outgoing)
+  .attr("stroke","None") }
+  
+  */
+  
+  
+  
+        /*
+           main.append("rect","g")
+             .attr("class", "popupbubble")
+             .attr("shape-rendering","geometricPrecision")
+             .attr("x", Math.max( Math.min(x1(d3.time.format.iso.parse(d.plotdate)) - popup_width/2.0 + 3,width-popup_width+3), 0))
+             .attr("y", opt_scale_popup ? mainHeight-y1(d.similarity)-(popup_fontsize+3) : mainHeight-y1(max_similarity)-popup_height+popup_vertical_shift - 3)
+             .attr("width", popup_width)
+             .attr("height", popup_height)
+             .attr("rx",popup_radius)
+             .attr("ry",popup_radius)
+             .style("fill", d.outgoing == 1 ? dark_outgoing : dark_incoming )
+             .style("stroke","None")
+       .on("mouseover", function(tmp) {
+         bubble(d,i,false);
+         if ( d.id==visible_rect || d.id==header.id ) {;}
+         else{
+         main.select("rect#outer-" + d.id)
+           .style("visibility", "visible")
+           .style("fill-opacity",1.0)
+           .style("fill", function(d) { return ( d.outgoing == 1 ? dark_outgoing : dark_incoming ); })
+           .style("stroke", function(d) { return ( d.outgoing == 1 ? dark_outgoing : dark_incoming ); });
+         }
+       })
+       .on("mouseout", function(tmp){
+         if ( d.id==visible_rect || d.id==header.id ){;} 
+         else{
+         main.select("rect#outer-" + d.id)
+           .style("fill", function(d) { return ( d.outgoing == 1 ? lite_outgoing : lite_incoming ); })
+           .style("fill-opacity",0.5)
+           .style("stroke", function(d) { return ( d.outgoing == 1 ? dark_outgoing : dark_incoming ); });
+        }
+         main.selectAll("text.popup").remove();
+         main.selectAll(".popupbubble").remove();
+         main.selectAll(".hoverrect").remove();
+       });; */
+             
+          /* main.append("line","g")
+             .attr("class", "time_label")
+             .attr("x1",  x1(d3.time.format.iso.parse(d.plotdate)) )
+             .attr("y1", mainHeight - y1(max_similarity))
+             .attr("x2",  x1(d3.time.format.iso.parse(d.plotdate)) )
+             .attr("y2", mainHeight-y1(d.similarity))
+             .style("stroke", "#444444")
+             .style("stroke-width", 0.5);*/
+           /*main.append("text","g")
+             .attr("class", "popup")
+             .text("Doc ID: "+ d.id + "    Similarity: " + d.similarity)
+             .attr("x", Math.max( Math.min(x1(d3.time.format.iso.parse(d.plotdate)) - popup_width/2.0 + 3,width-popup_width+3), 0))
+             .attr("dx", 5)
+             .attr("y", opt_scale_popup ? mainHeight-y1(d.similarity)-(popup_fontsize+3) : mainHeight-y1(max_similarity)-popup_height+popup_vertical_shift - 3)
+             .attr("dy", "-0.1em")
+             //.attr("text-anchor", ( x1(d3.time.format.iso.parse(d.plotdate)) < width-popup_width ) ? "start" : "end" )
+             .attr("text-anchor","start")
+             .style("fill", "#000000")
+             .style("font-size", (popup_fontsize)+"px"); */

@@ -1,0 +1,426 @@
+<html>
+<head>
+<title>Swimlane using d3.js</title>
+<script type="text/javascript" src="http://mbostock.github.com/d3/d3.v2.js"></script>
+<script type="text/javascript" src="test_data.js"></script>
+<style>
+.chart {
+	shape-rendering: crispEdges;
+}
+
+.mini text {
+	font: 9px sans-serif;	
+}
+
+.main text {
+	font: 12px sans-serif;	
+}
+
+.month text {
+	text-anchor: start;
+}
+
+.todayLine {
+	stroke: blue;
+	stroke-width: 1.5;
+}
+
+.axis line, .axis path {
+	stroke: black;
+}
+
+.miniItem {
+	stroke-width: 6;	
+}
+
+.future {
+	stroke: gray;
+	fill: #ddd;
+}
+
+.main rect {
+	stroke: green;
+	fill: lightgreen;
+}
+
+
+.main test {
+	stroke: green;
+	fill: green;
+}
+
+.mini rect {
+	stroke: none;
+	fill: green;
+}
+
+.brush .extent {
+  stroke: #fff;
+  fill: #000;
+  fill-opacity: .1;
+  shape-rendering: crispEdges;
+}
+
+
+</style>
+</head>
+<body>
+<form action="cgi-bin/get_similarities_cgi.py" method="get">
+Search Query: <input type="text" name="query">  <br />
+<input type="submit" value="Submit" />
+</form>
+<script type="text/javascript" src="test_data_header.js"></script>
+<script type="text/javascript" src="test_data.js"></script>
+<script type="text/javascript">
+
+
+
+var margin = {top: 20, right: 15, bottom: 15, left: 60}
+  , width = 960 - margin.left - margin.right
+  , height = 500 - margin.top - margin.bottom
+  , textHeight = 0
+  , miniHeight = 70
+  , mainHeight = height - textHeight - miniHeight - 50
+  , now = new Date()
+  , mainBarWidth = 10
+  , miniBarWidth = 2;
+
+
+var date_pretty = d3.time.format("%I:%M %p - %d %b %y");
+   
+var similarity_list = data.map(function(d) { return d.similarity; });
+var max_similarity = d3.max(data.map(function(d) { return d.similarity; } ));
+var min_date = d3.min(data.map(function(d) { return d3.time.day.offset(d3.time.format.iso.parse(d.date),-1);}));
+var max_date = d3.max(data.map(function(d) { return d3.time.day.offset(d3.time.format.iso.parse(d.date),1);}));
+
+var x1 = d3.time.scale().range([0, width]);
+x1.domain([min_date,max_date]);
+var x2 = d3.time.scale().range([0, width]);
+x2.domain([min_date,max_date]);
+ 
+var y1 = d3.scale.linear().domain([0,max_similarity]).range([0, mainHeight]);
+var y2 = d3.scale.linear().domain([0,max_similarity]).range([0, miniHeight]);
+
+var chart = d3.select('body')
+	.append('svg:svg')
+	.attr('width', width + margin.right + margin.left)
+	.attr('height', height + margin.top + margin.bottom)
+	.attr('class', 'chart');
+
+chart.append('defs').append('clipPath')
+	.attr('id', 'clip')
+	.append('rect')
+		.attr('width', width)
+		.attr('height', mainHeight);
+
+var main = chart.append('g')
+	.attr('transform', 'translate(' + margin.left + ',' + (textHeight + margin.top) + ')')
+	.attr('width', width)
+	.attr('height', mainHeight)
+	.attr('class', 'main');
+
+var mini = chart.append('g')
+	.attr('transform', 'translate(' + margin.left + ',' + (textHeight + mainHeight + miniHeight-25) + ')')
+	.attr('width', width)
+	.attr('height', miniHeight)
+	.attr('class', 'mini');
+
+// draw the x2 axis
+var x2DateAxis = d3.svg.axis()
+	.scale(x2)
+	.orient('bottom')
+	.tickSize(6, 0, 0);
+//	.ticks(d3.time.mondays, (x2.domain()[1] - x2.domain()[0]) > 15552e6 ? 2 : 1)
+//	.tickFormat(d3.time.format('%d %b %y'))
+
+var x1DateAxis = d3.svg.axis()
+	.scale(x1)
+	.orient('bottom')
+	.tickSize(6, 0, 0);
+//	.ticks(d3.time.days, 1)
+//	.tickFormat(d3.time.format('%a %d'))
+
+main.append('g')
+	.attr('transform', 'translate(0,' + mainHeight + ')')
+	.attr('class', 'main axis date')
+	.call(x1DateAxis);
+
+mini.append('g')
+	.attr('transform', 'translate(0,' + miniHeight + ')')
+	.attr('class', 'axis date')
+	.call(x2DateAxis);
+
+// draw a line representing today's date
+main.append('line')
+	.attr('y1', 0)
+	.attr('y2', mainHeight)
+	.attr('class', 'main todayLine')
+	.attr('clip-path', 'url(#clip)');
+	
+mini.append('line')
+	.attr('x1', x2(now) + 0.5)
+	.attr('y1', 0)
+	.attr('x2', x2(now) + 0.5)
+	.attr('y2', miniHeight)
+	.attr('class', 'todayLine');
+
+// draw the items
+var itemRects = main.append('g')
+	.attr('clip-path', 'url(#clip)');
+	
+var miniItemRects = mini.append('g')
+	.attr('clip-path', 'url(#clip)');
+	/*
+// invisible hit area to move around the selection window
+mini.append('rect')
+	.attr('pointer-events', 'painted')
+	.attr('width', width)
+	.attr('height', miniHeight)
+	.attr('visibility', 'hidden')
+	.on('mouseup', brushReset);
+*/
+
+// draw the selection area
+var brush = d3.svg.brush()
+	.x(x2)
+	.extent([min_date,max_date])
+	.on("brush", display);
+
+mini.append('g')
+	.attr('class', 'x brush')
+	.call(brush)
+	.selectAll('rect')
+		.attr('y', 1)
+		.attr('height', miniHeight);
+		
+		
+	//Add Title to page 
+	header = main.insert("text","g")
+     .attr("class", "title")
+     .text(header.query)
+     .attr("x", 1)
+     .attr("dx", 5)
+     .attr("y", mainHeight/2.0)
+     .attr("dy", "-0.1em")
+     .attr("text-anchor", "start" )
+     .style("fill", "#ccc")
+     .style("font-size", (80*10/header.query.length)+"px");
+  
+
+mini.selectAll('rect.background').remove();
+display();
+
+function display () {
+
+	var rects, mini_rects, labels
+	  , minExtent = d3.time.minute(brush.extent()[0])
+	  , maxExtent = d3.time.minute(brush.extent()[1])
+	  , visItems = data.filter(function (d) { return d3.time.format.iso.parse(d.date) < maxExtent && d3.time.format.iso.parse(d.date) > minExtent});
+
+	mini.select('.brush').call(brush.extent([minExtent, maxExtent]));		
+
+
+	x1.domain([minExtent, maxExtent]);
+/*
+	if ((maxExtent - minExtent) > 1468800000) {
+		x1DateAxis.ticks(d3.time.mondays, 1).tickFormat(d3.time.format('%a %d'))		
+	}
+	else if ((maxExtent - minExtent) > 172800000) {
+		x1DateAxis.ticks(d3.time.days, 1).tickFormat(d3.time.format('%a %d'))
+	}
+	else {
+		x1DateAxis.ticks(d3.time.hours, 4).tickFormat(d3.time.format('%I %p'))
+	}
+	*/
+	//x1Offset.range([0, x1(d3.time.day.ceil(now) - x1(d3.time.day.floor(now)))]);
+
+	// shift the today line
+	main.select('.main.todayLine')
+		.attr('x1', x1(now) + 0.5)
+		.attr('x2', x1(now) + 0.5);
+
+	// update the axis
+	main.select('.main.axis.date').call(x1DateAxis);
+
+	// upate the item rects
+	mini_rects = miniItemRects.selectAll('rect')
+		.data(data)
+		.attr('x', function(d) { return x2(d3.time.format.iso.parse(d.date)); })
+		.attr('width', function(d) { return miniBarWidth; });
+
+	mini_rects.enter().append('rect')
+		.attr('x', function(d) { return x2(d3.time.format.iso.parse(d.date)); })
+		.attr('y', function(d) { return miniHeight-y2(d.similarity); })
+		.attr('width', function(d) { return miniBarWidth; })
+		.attr('height', function(d) { return y2(d.similarity); })
+		.attr('class', function(d) { return 'mainItem ' + d.class; });
+		
+	mini_rects.exit().remove();
+	
+	
+	
+	// upate the mini item rects 
+	
+/*
+	rects = itemRects.selectAll('rect')
+		.data(data)
+		.attr('x', function(d) { return x1(d3.time.format.iso.parse(d.date)); })
+		.attr('width', function(d) { return 10; });
+
+	rects.enter().append('rect')
+    .attr("id", function(d,i) { return "outer-" + i; })
+		.attr('x', function(d) { return x1(d3.time.format.iso.parse(d.date)); })
+		.attr('y', function(d) { return mainHeight-y1(d.similarity); })
+		.attr('width', function(d) { return 10; })
+		.attr('height', function(d) { return y1(d.similarity); })
+    .style("fill-opacity", 0.25);
+*/
+	rects = itemRects.selectAll('rect')
+		.data(data)
+		.attr('x', function(d) { return x1(d3.time.format.iso.parse(d.date)); })
+		.attr('width', function(d) { return mainBarWidth; });
+
+	rects.enter().append('rect')
+    .attr("class", "outer")
+    .attr("id", function(d,i) { return "outer-" + i; })
+		.attr('x', function(d) { return x1(d3.time.format.iso.parse(d.date)); })
+		.attr('y', function(d) { return mainHeight-y1(d.similarity); })
+		.attr('width', function(d) { return mainBarWidth; })
+		.attr('height', function(d) { return y1(d.similarity); })
+    .style("fill-opacity", 0.5);
+    
+    /*
+  popuprects = itemRects.selectAll('extra_info')
+    .data(data)
+		.attr('x', function(d) { return x1(d3.time.format.iso.parse(d.date)); })
+		.attr('width', function(d) { return 10; });
+  popuprects.enter().append("rect")
+    .attr("class", "popup")
+    .attr("id", function(d,i) { return "popup-" + i; })
+		.attr('x', function(d) { return x1(d3.time.format.iso.parse(d.date)); })
+		.attr('y', function(d) { return mainHeight-y1(d.similarity); })
+		.attr('width', function(d) { return 100; })
+		.attr('height', function(d) { return 50; })
+     .style("fill-opacity",0.5)
+     .style("stroke","none")
+     .style("fill","black")
+     .style("border-radius","10px");
+  popuprects.exit().remove();
+    */
+    
+  rects.exit().remove();
+    
+  //invisible mouseover areas for each node
+  
+	invisirects = itemRects.selectAll('invisirects')
+		.data(data)
+		.attr('x', function(d) { return x1(d3.time.format.iso.parse(d.date)); })
+		.attr('width', function(d) { return 10; });
+		
+	invisirects.enter().append("rect")
+    .attr("class", "invisible")
+    .attr("id",'invisirects')
+     .style("fill-opacity",0.0)
+     .style("stroke","none")
+     .attr("x", function(d,i) {
+       return (i == 0) ? 0 :
+        (x1(d3.time.format.iso.parse(data[i-1].date)) + x1(d3.time.format.iso.parse(data[i].date)) + mainBarWidth) / 2.0;
+     })
+     .attr("width", function(d,i) {
+       xtmp1 = (i == 0) ? 0 :
+        (x1(d3.time.format.iso.parse(data[i-1].date)) + x1(d3.time.format.iso.parse(data[i].date)) + mainBarWidth) / 2.0;
+       xtmp2 = (i == data.length - 1) ? width :
+        (x1(d3.time.format.iso.parse(data[i].date)) + x1(d3.time.format.iso.parse(data[i+1].date)) + mainBarWidth) / 2.0;
+       return ( xtmp2 - xtmp1 < 0 ) ? 0 : xtmp2 - xtmp1;
+     })
+     .attr("y", mainHeight-y1(max_similarity))
+     .attr("height", y1(max_similarity))
+     .attr("cursor", "hand")
+       .on("mouseover", function(d, i) {
+         main.select("rect#outer-" + i)
+           .style("visibility", "visible")
+           .style("fill-opacity",1.0)
+           .style("fill", "blue")
+           .style("stroke", "darkblue");
+         if(i > 0){
+           main.append("text")
+             .attr("class", "time_label")
+             .text("Date: "+ date_pretty(d3.time.format.iso.parse(d.date)))
+             .attr("x", ( x1(d3.time.format.iso.parse(d.date)) < 3*width/4.0 ) ? ( x1(d3.time.format.iso.parse(d.date))+mainBarWidth/2.0+3 ): ( x1(d3.time.format.iso.parse(d.date))-mainBarWidth/2.0-3 ))
+             .attr("dx", 5)
+             .attr("y", mainHeight-y1(d.similarity)+45)
+             .attr("dy", "-0.1em")
+             .attr("text-anchor", ( x1(d3.time.format.iso.parse(d.date)) < 3*width/4.0 ) ? "start" : "end" )
+             .style("fill", "#444444")
+             .style("font-size", "12px");
+           main.append("text","g")
+             .attr("class", "time_label")
+             .text("From: "+d.sender)
+             .attr("x", ( x1(d3.time.format.iso.parse(d.date)) < 3*width/4.0 ) ? ( x1(d3.time.format.iso.parse(d.date))+mainBarWidth/2.0+3 ): ( x1(d3.time.format.iso.parse(d.date))-mainBarWidth/2.0-3 ))
+             .attr("dx", 5)
+             .attr("y", mainHeight-y1(d.similarity)+15)
+             .attr("dy", "-0.1em")
+             .attr("text-anchor", ( x1(d3.time.format.iso.parse(d.date)) < 3*width/4.0 ) ? "start" : "end" )
+             .style("fill", "#444444")
+             .style("font-size", "12px");
+           main.append("text","g")
+             .attr("class", "time_label")
+             .text("To: "+d.recipient)
+             .attr("x", ( x1(d3.time.format.iso.parse(d.date)) < 3*width/4.0 ) ? ( x1(d3.time.format.iso.parse(d.date))+mainBarWidth/2.0+3 ): ( x1(d3.time.format.iso.parse(d.date))-mainBarWidth/2.0-3 ))
+             .attr("dx", 5)
+             .attr("y", mainHeight-y1(d.similarity)+30)
+             .attr("dy", "-0.1em")
+             .attr("text-anchor", ( x1(d3.time.format.iso.parse(d.date)) < 3*width/4.0 ) ? "start" : "end" )
+             .style("fill", "#444444")
+             .style("font-size", "12px");
+       }})
+       .on("mouseout", function(d, i){
+         main.select("rect#outer-" + i)
+           .style("fill", "lightgreen")
+           .style("fill-opacity",0.5)
+           .style("stroke", "green");
+         if(i > 0) main.selectAll(".time_label").remove();
+       });
+       /*
+       .on("mouseup", function(d, i){
+         textwindow.append("test")
+             .attr("class", "textwindow")
+             .text("To: "+d.recipient)
+             .attr("x", 1)
+             .attr("dx", 5)
+             .attr("y", 1)
+             .attr("dy", "-0.1em")
+             .attr("text-anchor", "start" )
+             .style("fill", "#000")
+             .style("font-size", "12px");});
+*/
+invisirects.exit().remove();
+  
+
+
+  
+}
+
+
+function brush() {
+	var origin = d3.mouse(this)
+	  , point = x2.invert(origin[0])
+	  , halfExtent = (brush.extent()[1].getTime() - brush.extent()[0].getTime()) / 2
+	  , start = new Date(point.getTime() - halfExtent)
+	  , end = new Date(point.getTime() + halfExtent);
+
+	brush.extent([start,end]);
+	display();
+}
+
+
+
+function brushReset() {
+	brush.extent([min_date,max_date]);
+	display();
+}
+
+
+</script>
+</body>
+</html>
